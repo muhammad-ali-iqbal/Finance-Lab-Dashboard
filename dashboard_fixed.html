@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IBA Finance Lab — KSE-100 Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #1a0008;
+    --surface: #2D0A15;
+    --surf2:   #3D1020;
+    --border:  #5A1825;
+    --green:   #00C896;
+    --red:     #FF4D6A;
+    --gold:    #F5A623;
+    --text:    #F5F0EB;
+    --muted:   #B09090;
+    --label:   #7A5060;
+    --maroon:  #6B1A2A;
+    --maroon-d:#4A1020;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh; padding-bottom: 40px;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(107,26,42,0.18) 0%, transparent 60%),
+      repeating-linear-gradient(0deg,   transparent, transparent 39px, rgba(90,24,37,0.25) 40px),
+      repeating-linear-gradient(90deg,  transparent, transparent 39px, rgba(90,24,37,0.25) 40px);
+  }
+
+  /* HEADER */
+  header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 36px; border-bottom:1px solid var(--border);
+    background:rgba(45,10,21,0.98); backdrop-filter:blur(8px);
+    position:sticky; top:0; z-index:100;
+  }
+  .brand { display:flex; align-items:center; gap:14px; }
+  .logo {
+    width:44px; height:44px; border:2px solid rgba(245,240,235,0.35); border-radius:4px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Playfair Display',serif; font-size:22px; font-weight:900; color:var(--text);
+    background: var(--maroon);
+    box-shadow:0 0 18px rgba(107,26,42,0.4),inset 0 0 12px rgba(0,0,0,0.2);
+  }
+  .brand-text h1 { font-family:'Playfair Display',serif; font-size:17px; font-weight:700; letter-spacing:.02em; }
+  .brand-text p  { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:.12em; text-transform:uppercase; }
+  .hdr-right { display:flex; align-items:center; gap:22px; }
+  .live-badge { display:flex; align-items:center; gap:7px; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.1em; color:var(--text); }
+  .dot { width:7px; height:7px; border-radius:50%; background:var(--text); box-shadow:0 0 6px rgba(245,240,235,0.6); animation:pulse 1.8s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.8)} }
+  #clock { font-family:'IBM Plex Mono',monospace; font-size:13px; letter-spacing:.07em; }
+
+  /* STATUS BAR */
+  .statusbar {
+    background:var(--maroon-d); border-bottom:1px solid var(--border);
+    padding:5px 36px; display:flex; align-items:center; gap:10px;
+    font-family:'IBM Plex Mono',monospace; font-size:11px;
+  }
+  .sdot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .sdot.ok      { background:var(--green); }
+  .sdot.err     { background:var(--red); animation:pulse 1s infinite; }
+  .sdot.loading { background:var(--gold); animation:pulse 1s infinite; }
+  #stext { color:var(--muted); }
+
+  /* TICKER TAPE */
+  .ticker-wrap {
+    overflow:hidden; height:32px; border-bottom:1px solid var(--border);
+    background:rgba(26,0,8,0.92); display:flex; align-items:center;
+  }
+  .ticker-track { display:flex; white-space:nowrap; animation:scroll 55s linear infinite; }
+  @keyframes scroll { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+  .ti {
+    font-family:'IBM Plex Mono',monospace; font-size:12px;
+    padding:0 26px; border-right:1px solid var(--border);
+    display:flex; align-items:center; gap:8px; color:var(--muted);
+  }
+  .ti .n { color:var(--text); font-weight:600; }
+  .ti.up .c   { color:var(--green); }
+  .ti.down .c { color:var(--red); }
+
+  /* MAIN LAYOUT */
+  .wrap { margin:22px 28px; display:flex; flex-direction:column; gap:1px; }
+
+  /* CARDS */
+  .card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:6px; padding:26px 30px; position:relative; overflow:hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
+  .card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+  .card.c-green::before { background:linear-gradient(90deg,transparent,var(--maroon-d),transparent); border-top: 2px solid var(--maroon); }
+  .card.c-red::before   { background:linear-gradient(90deg,transparent,var(--red),transparent); }
+
+  .clabel {
+    font-family:'IBM Plex Mono',monospace; font-size:10px;
+    letter-spacing:.18em; text-transform:uppercase; color:var(--label);
+    margin-bottom:10px; display:flex; align-items:center; gap:8px;
+  }
+  .clabel::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  .val {
+    font-family:'IBM Plex Mono',monospace; font-weight:300;
+    line-height:1; letter-spacing:-.02em; margin-bottom:8px; transition:color .4s;
+  }
+  .val.loading { color:var(--label); animation:blink 1.2s infinite; }
+  .val.flash-up   { color:var(--green) !important; }
+  .val.flash-down { color:var(--red)   !important; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+  .subrow { display:flex; align-items:center; gap:10px; }
+  .badge { padding:3px 9px; border-radius:3px; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600; }
+  .badge.up   { background:rgba(0,200,150,.12); color:var(--green); border:1px solid rgba(0,200,150,.25); }
+  .badge.down { background:rgba(255,77,106,.12); color:var(--red);   border:1px solid rgba(255,77,106,.25); }
+  .badge.neu  { background:rgba(90,112,144,.1);  color:var(--muted); border:1px solid var(--border); }
+  .pct { font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted); }
+
+  .err-note {
+    display:none; margin-top:8px;
+    font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--gold);
+    background:rgba(245,166,35,.08); border:1px solid rgba(245,166,35,.2);
+    padding:5px 10px; border-radius:3px;
+  }
+  .err-note.show { display:block; }
+  .ts { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--label); margin-top:7px; }
+
+  /* KSE HERO */
+  .kse-hero { display:grid; grid-template-columns:1fr 300px; gap:32px; align-items:center; }
+  .kse-val  { font-size:72px; }
+  .kse-stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .sbox { background:rgba(0,0,0,0.25); border:1px solid var(--border); border-radius:4px; padding:12px 16px; }
+  .sbox .sl { font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--label); margin-bottom:5px; }
+  .sbox .sv { font-family:'IBM Plex Mono',monospace; font-size:16px; color:var(--text); }
+
+  /* PRICE CHART */
+  .tf-row { display:flex; gap:6px; }
+  .tf-btn {
+    padding:4px 12px; border-radius:4px; font-size:10px; letter-spacing:.06em;
+    cursor:pointer; border:1px solid var(--border); color:var(--muted);
+    background:transparent; font-family:'IBM Plex Mono',monospace; transition:all .2s;
+  }
+  .tf-btn.active { background:var(--maroon); color:var(--text); border-color:var(--maroon-d); font-weight:700; }
+  .tf-btn:hover:not(.active) { border-color:var(--muted); color:var(--text); }
+  .chart-box  { height:200px; position:relative; }
+  canvas { width:100% !important; }
+  #kseChart { height:200px !important; }
+  .chart-footer {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:10px; padding-top:10px; border-top:1px solid var(--border);
+    font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted);
+  }
+  .ohlc { display:flex; gap:20px; }
+  .ohlc-item .ol { font-size:8px; color:var(--label); letter-spacing:.1em; text-transform:uppercase; }
+  .ohlc-item .ov { font-size:13px; color:var(--text); margin-top:2px; }
+
+  /* ── ANALYSIS ROW ── */
+  .analysis-row { display:grid; grid-template-columns:1fr 1fr; gap:1px; }
+
+  /* ── DONUT / SECTOR CHART ── */
+  .donut-layout { display:flex; align-items:center; gap:24px; }
+  .donut-wrap   { position:relative; flex-shrink:0; width:280px; height:280px; }
+  #sectorDonut  { width:280px !important; height:280px !important; }
+  .donut-centre {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    text-align:center; pointer-events:none; width:100px;
+  }
+  .donut-centre .dc-idx   { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:.08em; }
+  .donut-centre .dc-val   { font-family:'IBM Plex Mono',monospace; font-size:16px; font-weight:600; margin-top:3px; }
+  .donut-centre .dc-val.up   { color:var(--green); }
+  .donut-centre .dc-val.down { color:var(--red); }
+
+  /* sector legend */
+  .sector-legend { display:flex; flex-direction:column; gap:7px; flex:1; min-width:0; }
+  .sl-row { display:flex; align-items:center; gap:8px; }
+  .sl-swatch { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+  .sl-name { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sl-bar-wrap { width:60px; background:var(--border); border-radius:2px; height:3px; flex-shrink:0; }
+  .sl-bar      { height:3px; border-radius:2px; }
+  .sl-pct      { font-family:'IBM Plex Mono',monospace; font-size:10px; width:44px; text-align:right; flex-shrink:0; }
+  .sl-pct.up   { color:var(--green); }
+  .sl-pct.down { color:var(--red); }
+
+  /* ── CONTRIBUTORS BAR CHART ── */
+  .contrib-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .ctab-row { display:flex; gap:6px; }
+  .ctab {
+    padding:3px 10px; border-radius:4px; font-size:10px; letter-spacing:.06em;
+    cursor:pointer; border:1px solid var(--border); color:var(--muted);
+    background:transparent; font-family:'IBM Plex Mono',monospace; transition:all .2s;
+  }
+  .ctab.active  { background:var(--maroon); color:var(--text); border-color:var(--maroon-d); font-weight:700; }
+  .ctab:hover:not(.active) { border-color:var(--muted); color:var(--text); }
+
+  .contrib-chart-box { height:240px; position:relative; }
+  #contribChart      { height:240px !important; }
+
+  .contrib-legend {
+    display:flex; gap:16px; margin-top:10px; padding-top:8px;
+    border-top:1px solid var(--border);
+  }
+  .contrib-legend-item { display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted); }
+  .contrib-legend-dot  { width:8px; height:8px; border-radius:50%; }
+
+  /* FOOTER */
+  footer {
+    text-align:center; padding:13px;
+    font-family:'IBM Plex Mono',monospace; font-size:10px;
+    color:var(--label); letter-spacing:.09em;
+    border-top:1px solid var(--border); margin-top:22px;
+  }
+
+  /* NEWS BAR */
+  .news-bar {
+    position:fixed; bottom:0; left:0; right:0; height:36px; z-index:200;
+    background:rgba(45,10,21,0.99); border-top:1px solid var(--border);
+    display:flex; align-items:center; overflow:hidden;
+  }
+  .news-label {
+    background:var(--maroon); color:var(--text); font-weight:700;
+    font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.12em;
+    padding:0 14px; height:100%; display:flex; align-items:center;
+    white-space:nowrap; flex-shrink:0; text-transform:uppercase;
+  }
+  .news-track { display:flex; white-space:nowrap; animation:scroll 90s linear infinite; padding-left:24px; }
+  .news-item  { font-family:'IBM Plex Mono',monospace; font-size:12px; color:#D4C0C4; padding:0 52px; border-right:1px solid var(--border); letter-spacing:.03em; }
+  .news-item::before { content:'▶ '; color:var(--gold); margin-right:8px; }
+
+  /* ════════════════════════════════════════════════════
+     RESPONSIVE / MOBILE  — everything below 768px
+     ════════════════════════════════════════════════════ */
+  @media (max-width: 768px) {
+
+    /* Header */
+    header { padding: 12px 16px; }
+    .brand-text h1 { font-size: 14px; }
+    .brand-text p  { display: none; }   /* hide sub-label on small screens */
+    #clock { font-size: 11px; }
+
+    /* Status bar */
+    .statusbar { padding: 4px 16px; font-size: 10px; }
+
+    /* Ticker font */
+    .ti { font-size: 11px; padding: 0 16px; }
+
+    /* Main wrap — tighter margins */
+    .wrap { margin: 12px 12px; gap: 8px; }
+
+    /* Cards */
+    .card { padding: 16px 14px; }
+
+    /* KSE hero — stack vertically instead of side-by-side grid */
+    .kse-hero {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .kse-val { font-size: 48px; }
+    /* Stats grid — keep 2 cols but shrink */
+    .kse-stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .sbox .sv { font-size: 14px; }
+
+    /* Price chart — shorter on mobile */
+    .chart-box  { height: 160px; }
+    #kseChart   { height: 160px !important; }
+    /* Hide "LAST UPDATED" text on mobile — too much clutter */
+    #cfUpdated  { display: none; }
+    /* TF buttons — smaller */
+    .tf-btn { padding: 4px 8px; font-size: 9px; }
+
+    /* Analysis row — stack vertically */
+    .analysis-row {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    /* Donut panel — stack donut above legend */
+    .donut-layout {
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .donut-wrap { width: 220px; height: 220px; }
+    #sectorDonut { width: 220px !important; height: 220px !important; }
+    /* Legend fills width below donut */
+    .sector-legend { width: 100%; }
+
+    /* Contributors chart */
+    .contrib-chart-box { height: 200px; }
+    #contribChart      { height: 200px !important; }
+
+    /* Footer */
+    footer { font-size: 9px; padding: 10px; }
+
+    /* News bar — smaller on mobile */
+    .news-bar   { height: 30px; }
+    .news-item  { font-size: 11px; padding: 0 32px; }
+    .news-label { font-size: 9px; padding: 0 10px; }
+    body        { padding-bottom: 34px; }
+  }
+
+  /* Very small phones (< 400px) */
+  @media (max-width: 400px) {
+    .kse-val { font-size: 38px; }
+    .donut-wrap { width: 180px; height: 180px; }
+    #sectorDonut { width: 180px !important; height: 180px !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo" style="font-size:14px;letter-spacing:.05em">IBA</div>
+    <div class="brand-text">
+      <h1>IBA Finance Laboratory</h1>
+      <p>Market Intelligence Dashboard</p>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="live-badge"><div class="dot"></div>LIVE DATA</div>
+    <div id="clock">--:--:--</div>
+  </div>
+</header>
+
+<div class="statusbar">
+  <div class="sdot loading" id="sdot"></div>
+  <span id="stext">Connecting to local data server…</span>
+</div>
+
+<div class="ticker-wrap"><div class="ticker-track" id="tickerTrack"></div></div>
+
+<div class="wrap">
+
+  <!-- KSE HERO -->
+  <div class="card c-green kse-hero">
+    <div>
+      <div class="clabel">KSE-100 Index · Pakistan Stock Exchange</div>
+      <div class="val kse-val loading" id="kseVal">—————</div>
+      <div class="subrow">
+        <span class="badge neu" id="kseBadge">—</span>
+        <span class="pct" id="ksePct"></span>
+      </div>
+      <div class="err-note" id="kseErr"></div>
+      <div class="ts" id="kseTs">Last updated: —</div>
+    </div>
+    <div class="kse-stats">
+      <div class="sbox"><div class="sl">Open</div><div class="sv" id="kseOpen">—</div></div>
+      <div class="sbox"><div class="sl">Prev Close</div><div class="sv" id="ksePrev">—</div></div>
+      <div class="sbox"><div class="sl">Day High</div><div class="sv" id="kseHigh">—</div></div>
+      <div class="sbox"><div class="sl">Day Low</div><div class="sv" id="kseLow">—</div></div>
+    </div>
+  </div>
+
+  <!-- PRICE HISTORY CHART -->
+  <div class="card c-green">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="clabel" style="margin-bottom:0;flex:1">KSE-100 · Price History</div>
+      <div class="tf-row">
+        <button class="tf-btn active" onclick="switchTF(this,'1D')">1D</button>
+        <button class="tf-btn" onclick="switchTF(this,'1W')">1W</button>
+        <button class="tf-btn" onclick="switchTF(this,'1M')">1M</button>
+        <button class="tf-btn" onclick="switchTF(this,'3M')">3M</button>
+        <button class="tf-btn" onclick="switchTF(this,'ALL')">ALL</button>
+      </div>
+    </div>
+    <div class="chart-box"><canvas id="kseChart"></canvas></div>
+    <div class="chart-footer">
+      <div class="ohlc">
+        <div class="ohlc-item"><div class="ol">Open</div><div class="ov" id="cfOpen">—</div></div>
+        <div class="ohlc-item"><div class="ol">High</div><div class="ov" id="cfHigh">—</div></div>
+        <div class="ohlc-item"><div class="ol">Low</div><div class="ov" id="cfLow">—</div></div>
+      </div>
+      <div id="cfUpdated">LAST UPDATED: —</div>
+    </div>
+  </div>
+
+  <!-- SECTOR DONUT + CONTRIBUTORS -->
+  <div class="analysis-row">
+
+    <!-- LEFT: Sector Breakdown Donut -->
+    <div class="card c-green">
+      <div class="clabel">KSE-100 · Sector Breakdown</div>
+      <div class="donut-layout">
+        <div class="donut-wrap">
+          <canvas id="sectorDonut"></canvas>
+          <div class="donut-centre">
+            <div class="dc-idx">KSE-100</div>
+            <div class="dc-val" id="donutCentreVal">—</div>
+          </div>
+        </div>
+        <div class="sector-legend" id="sectorLegend">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted)">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Top Point Contributors -->
+    <div class="card c-red">
+      <div class="contrib-header">
+        <div class="clabel" style="margin-bottom:0;flex:1">KSE-100 · Top Point Contributors</div>
+        <div class="ctab-row">
+          <button class="ctab active" onclick="switchContrib(this,'stocks')">Stocks</button>
+          <button class="ctab" onclick="switchContrib(this,'sectors')">Sectors</button>
+        </div>
+      </div>
+      <div class="contrib-chart-box"><canvas id="contribChart"></canvas></div>
+      <div class="contrib-legend">
+        <div class="contrib-legend-item"><div class="contrib-legend-dot" style="background:var(--green)"></div>Positive Contributors</div>
+        <div class="contrib-legend-item"><div class="contrib-legend-dot" style="background:var(--red)"></div>Negative Contributors</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<footer>
+  IBA FINANCE LABORATORY &nbsp;·&nbsp; DATA: PSX + YAHOO FINANCE VIA LOCAL SERVER
+  &nbsp;·&nbsp; AUTO-REFRESH EVERY 5 MIN &nbsp;·&nbsp; EDUCATIONAL USE ONLY
+</footer>
+
+<div class="news-bar">
+  <div class="news-label">● Latest News</div>
+  <div class="news-track" id="newsTrack">
+    <div class="news-item">Loading latest news…</div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+// Auto-detect server host so mobile browsers work without config changes.
+// If opened from the server PC itself → localhost. If opened from a phone
+// on the same Wi-Fi → use the same hostname/IP the page was served from.
+const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:5000/api'
+  : `http://${location.hostname}:5000/api`;
+
+// ── Sector colours — 10 visually distinct, works on dark maroon bg ──
+// Each sector always gets the SAME colour regardless of +/- direction.
+// This makes the legend readable and the donut identifiable at a glance.
+const SECTOR_PALETTE = [
+  '#00C896',  // 0 teal-green
+  '#FF6B35',  // 1 orange
+  '#4FC3F7',  // 2 sky blue
+  '#FFD54F',  // 3 amber
+  '#CE93D8',  // 4 lavender
+  '#EF5350',  // 5 red
+  '#A5D6A7',  // 6 mint green
+  '#F48FB1',  // 7 pink
+  '#80DEEA',  // 8 cyan
+  '#BCAAA4',  // 9 warm grey
+];
+
+// ── Clock ──────────────────────────────────────────────────────
+function tick() {
+  document.getElementById('clock').textContent = new Date().toLocaleString('en-PK', {
+    timeZone:'Asia/Karachi', hour12:false,
+    day:'2-digit', month:'short', year:'numeric',
+    hour:'2-digit', minute:'2-digit', second:'2-digit'
+  });
+}
+setInterval(tick, 1000); tick();
+
+// ── KSE Price Chart ────────────────────────────────────────────
+const chartLabels = [], chartData = [];
+let liveIndex = -1, historyFull = [], historyIntraday = [], currentTF = '1D';
+
+const kseChart = new Chart(document.getElementById('kseChart').getContext('2d'), {
+  type:'line',
+  data:{ labels:chartLabels, datasets:[{
+    data:chartData, borderColor:'#00C896', borderWidth:2,
+    pointRadius:0, pointHoverRadius:5, pointHoverBackgroundColor:'#00C896',
+    fill:true, tension:0.4,
+    backgroundColor: ctx => {
+      const g = ctx.chart.ctx.createLinearGradient(0,0,0,200);
+      g.addColorStop(0,'rgba(0,200,150,0.15)'); g.addColorStop(0.6,'rgba(0,200,150,0.04)'); g.addColorStop(1,'rgba(0,200,150,0.00)');
+      return g;
+    }
+  }]},
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    animation:{ duration:500, easing:'easeInOutQuart' },
+    interaction:{ mode:'index', intersect:false },
+    plugins:{
+      legend:{ display:false },
+      tooltip:{
+        backgroundColor:'rgba(45,10,21,0.97)', borderColor:'#5A1825', borderWidth:1,
+        titleFont:{family:'IBM Plex Mono',size:10}, bodyFont:{family:'IBM Plex Mono',size:13,weight:'600'},
+        titleColor:'#B09090', bodyColor:'#F5F0EB', padding:10,
+        callbacks:{
+          label: c => '  '+c.parsed.y.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}),
+          afterLabel: c => c.dataIndex===liveIndex ? '  ● LIVE':''
+        }
+      }
+    },
+    scales:{
+      x:{ ticks:{color:'#7A5060',font:{family:'IBM Plex Mono',size:9},maxTicksLimit:10,maxRotation:0}, grid:{color:'rgba(22,32,53,0.6)',drawBorder:false} },
+      y:{ position:'right', grid:{color:'rgba(22,32,53,0.6)',drawBorder:false}, ticks:{color:'#7A5060',font:{family:'IBM Plex Mono',size:9},callback:v=>v.toLocaleString()} }
+    }
+  }
+});
+
+function setChartSeries(labels, data) {
+  chartLabels.length=0; chartData.length=0;
+  labels.forEach(l=>chartLabels.push(l)); data.forEach(d=>chartData.push(d));
+  kseChart.update('none');
+}
+
+function switchTF(btn, tf) {
+  document.querySelectorAll('.tf-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); currentTF=tf; applyTF(tf);
+}
+
+function applyTF(tf) {
+  if (tf==='1D' && historyIntraday.length>0) {
+    const labels = historyIntraday.map(r=>new Date(r[0]*1000).toLocaleTimeString('en-PK',{timeZone:'Asia/Karachi',hour:'2-digit',minute:'2-digit'}));
+    const data   = historyIntraday.map(r=>r[1]);
+    liveIndex=data.length-1; setChartSeries(labels,data); return;
+  }
+  const slices={'1D':1,'1W':5,'1M':22,'3M':66,'ALL':9999};
+  const days=slices[tf]||66;
+  const slice=historyFull.length>days ? historyFull.slice(-days):historyFull;
+  liveIndex=slice.length-1;
+  setChartSeries(slice.map(r=>r.date), slice.map(r=>r.price));
+}
+
+// ── Sector Donut ───────────────────────────────────────────────
+const donutCtx = document.getElementById('sectorDonut').getContext('2d');
+let sectorChart = null;
+
+function renderSectorDonut(sectors, indexPct) {
+  // Show up to 10 sectors; use absolute pct as arc size so all arcs visible
+  const top = (sectors||[]).slice(0,10);
+  if (!top.length) return;
+
+  const labels = top.map(s=>s.sector);
+  const values = top.map(s=>Math.max(Math.abs(s.pct), 0.5)); // min arc so all visible
+  // Each sector gets its own distinct colour regardless of +/- direction
+  const colors = top.map((_,i) => SECTOR_PALETTE[i % SECTOR_PALETTE.length]);
+
+  // Centre label
+  const centreEl = document.getElementById('donutCentreVal');
+  const sign = indexPct>=0?'+':'';
+  centreEl.textContent = sign+indexPct.toFixed(2)+'%';
+  centreEl.className   = 'dc-val '+(indexPct>=0?'up':'down');
+
+  if (sectorChart) { sectorChart.destroy(); }
+
+  sectorChart = new Chart(donutCtx, {
+    type:'doughnut',
+    data:{ labels, datasets:[{ data:values, backgroundColor:colors, borderColor:'#1a0008', borderWidth:2, hoverBorderWidth:3 }] },
+    options:{
+      responsive:false, animation:{ animateRotate:true, duration:800 },
+      cutout:'60%',
+      plugins:{
+        legend:{ display:false },
+        tooltip:{
+          backgroundColor:'rgba(45,10,21,0.97)', borderColor:'#5A1825', borderWidth:1,
+          titleFont:{family:'IBM Plex Mono',size:11}, bodyFont:{family:'IBM Plex Mono',size:11},
+          titleColor:'#E8EDF5', bodyColor:'#5A7090',
+          callbacks:{
+            title: items => items[0].label,
+            label: item => {
+              const s = top[item.dataIndex];
+              const sign = s.pct>=0?'+':'';
+              return `  ${sign}${s.pct.toFixed(2)}%`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Build legend
+  const legend = document.getElementById('sectorLegend');
+  const maxAbs = Math.max(...top.map(s=>Math.abs(s.pct)), 0.01);
+  legend.innerHTML = top.map((s,i) => {
+    const sign = s.pct>=0?'+':'';
+    const barW = Math.round((Math.abs(s.pct)/maxAbs)*56);
+    const barColor = SECTOR_PALETTE[i % SECTOR_PALETTE.length];
+    return `<div class="sl-row">
+      <div class="sl-swatch" style="background:${barColor}"></div>
+      <div class="sl-name">${s.sector}</div>
+      <div class="sl-bar-wrap"><div class="sl-bar" style="width:${barW}px;background:${barColor}"></div></div>
+      <div class="sl-pct ${s.pct>=0?'up':'down'}">${sign}${s.pct.toFixed(2)}%</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Contributors Bar Chart ─────────────────────────────────────
+const contribCtx = document.getElementById('contribChart').getContext('2d');
+let contribChart  = null;
+let contribStocks = [], contribSectors = [], activeContrib = 'stocks';
+
+function switchContrib(btn, mode) {
+  document.querySelectorAll('.ctab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); activeContrib=mode;
+  renderContrib();
+}
+
+function renderContrib() {
+  const items = activeContrib==='stocks' ? contribStocks : contribSectors;
+  if (!items.length) return;
+
+  // Sort by pct ascending (biggest losers left, biggest gainers right — matches screenshot)
+  const sorted = [...items].sort((a,b)=>a.pct-b.pct);
+  const labels  = sorted.map(s=>s.symbol||s.sector);
+  const values  = sorted.map(s=>s.pct);
+  const colors  = sorted.map(s=>s.pct>=0?'rgba(0,200,150,0.85)':'rgba(255,77,106,0.85)');
+  const borders = sorted.map(s=>s.pct>=0?'#00C896':'#FF4D6A');
+
+  if (contribChart) { contribChart.destroy(); }
+
+  contribChart = new Chart(contribCtx, {
+    type:'bar',
+    data:{ labels, datasets:[{ data:values, backgroundColor:colors, borderColor:borders, borderWidth:1, borderRadius:3 }] },
+    options:{
+      responsive:false, maintainAspectRatio:false,
+      animation:{ duration:600 },
+      plugins:{
+        legend:{ display:false },
+        tooltip:{
+          backgroundColor:'rgba(45,10,21,0.97)', borderColor:'#5A1825', borderWidth:1,
+          titleFont:{family:'IBM Plex Mono',size:11}, bodyFont:{family:'IBM Plex Mono',size:12},
+          titleColor:'#E8EDF5', bodyColor:'#5A7090',
+          callbacks:{
+            label: item => {
+              const sign=item.parsed.y>=0?'+':'';
+              return `  ${sign}${item.parsed.y.toFixed(2)}%`;
+            }
+          }
+        }
+      },
+      scales:{
+        x:{
+          ticks:{ color:'#5A7090', font:{family:'IBM Plex Mono',size:10}, maxRotation:0 },
+          grid:{ display:false }
+        },
+        y:{
+          position:'right',
+          ticks:{ color:'#3A5070', font:{family:'IBM Plex Mono',size:9}, callback:v=>v.toFixed(1)+'%' },
+          grid:{ color:'rgba(22,32,53,0.6)', drawBorder:false },
+          // Ensure 0-line is visible
+          border:{ dash:[3,3] }
+        }
+      }
+    }
+  });
+}
+
+// ── Helpers ────────────────────────────────────────────────────
+const fmt  = (n,d=2) => isNaN(n)||n==null ? '—' : (+n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const nowT = () => new Date().toLocaleTimeString('en-PK',{timeZone:'Asia/Karachi'});
+
+function applyCard({valId,badgeId,pctId,tsId,errId},d) {
+  const base=d.prev_close||d.open, change=d.close-base, pct=base?(change/base)*100:0;
+  const dir=change>=0?'up':'down', sign=change>=0?'+':'';
+  const el=document.getElementById(valId), prev=parseFloat(el.dataset.prev||0);
+  el.textContent=fmt(d.close); el.classList.remove('loading');
+  if (prev&&d.close!==prev) {
+    el.classList.add(d.close>prev?'flash-up':'flash-down');
+    setTimeout(()=>el.classList.remove('flash-up','flash-down'),1200);
+  }
+  el.dataset.prev=d.close;
+  const b=document.getElementById(badgeId);
+  b.textContent=sign+fmt(change); b.className='badge '+dir;
+  document.getElementById(pctId).textContent=sign+fmt(pct)+'%';
+  document.getElementById(tsId).textContent='Last updated: '+nowT();
+  if (errId) document.getElementById(errId).classList.remove('show');
+  return {dir,change,pct};
+}
+
+function showErr(errId,valId,msg) {
+  document.getElementById(errId).textContent='⚠ '+msg;
+  document.getElementById(errId).classList.add('show');
+  const v=document.getElementById(valId);
+  v.textContent='N/A'; v.classList.remove('loading');
+}
+
+// ── Ticker ─────────────────────────────────────────────────────
+const TICKER_KEYS  = ['kse100','usdpkr','eurpkr'];
+const TICKER_NAMES = { kse100:'KSE-100', usdpkr:'USD/PKR', eurpkr:'EUR/PKR' };
+const tickerState  = {};
+
+function buildTicker() {
+  const track=document.getElementById('tickerTrack');
+  track.innerHTML='';
+  for (let pass=0;pass<2;pass++) {
+    TICKER_KEYS.forEach(key=>{
+      const d=tickerState[key], el=document.createElement('div');
+      el.className='ti'+(d?(d.change>=0?' up':' down'):'');
+      el.innerHTML=`<span class="n">${TICKER_NAMES[key]}</span>`
+        +`<span>${d?fmt(d.close):'—'}</span>`
+        +`<span class="c">${d?((d.change>=0?'+':'')+fmt(d.pct)+'%'):'—'}</span>`;
+      track.appendChild(el);
+    });
+  }
+}
+
+function setStatus(state,msg) {
+  document.getElementById('sdot').className='sdot '+state;
+  document.getElementById('stext').textContent=msg;
+}
+
+// ── History loaders ────────────────────────────────────────────
+async function loadHistory() {
+  try { const r=await fetch(`${API}/history`); if(!r.ok) throw new Error(); historyFull=await r.json(); }
+  catch(e) { historyFull=[]; }
+}
+async function loadIntraday() {
+  try { const r=await fetch(`${API}/intraday`); if(!r.ok) throw new Error(); historyIntraday=await r.json(); }
+  catch(e) { historyIntraday=[]; }
+}
+
+// ── Main fetch ─────────────────────────────────────────────────
+async function loadAll() {
+  setStatus('loading','Fetching latest data…');
+  try {
+    const res=await fetch(`${API}/all`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data=await res.json();
+
+    // KSE-100 quote
+    const q=data.quote;
+    if (q&&!q.error) {
+      const k={close:q.price,open:q.open,high:q.high,low:q.low,prev_close:q.prev_close||q.open};
+      applyCard({valId:'kseVal',badgeId:'kseBadge',pctId:'ksePct',tsId:'kseTs',errId:'kseErr'},k);
+      document.getElementById('kseOpen').textContent=fmt(k.open);
+      document.getElementById('ksePrev').textContent=fmt(k.prev_close);
+      document.getElementById('kseHigh').textContent=fmt(k.high);
+      document.getElementById('kseLow').textContent=fmt(k.low);
+      document.getElementById('cfOpen').textContent=fmt(k.open);
+      document.getElementById('cfHigh').textContent=fmt(k.high);
+      document.getElementById('cfLow').textContent=fmt(k.low);
+      document.getElementById('cfUpdated').textContent='LAST UPDATED: '+nowT();
+
+      if (currentTF==='1D'&&historyIntraday.length>0) {
+        historyIntraday[historyIntraday.length-1][1]=k.close; applyTF('1D');
+      } else if (liveIndex>=0&&liveIndex<chartData.length) {
+        chartData[liveIndex]=k.close; kseChart.update('none');
+      }
+      tickerState.kse100={close:k.close,change:q.change,pct:q.pct};
+    } else { showErr('kseErr','kseVal',q?.error||'No KSE-100 data'); }
+
+    // Market data → sector donut + contributors
+    const m=data.market;
+    if (m&&!m.error) {
+      // Sectors for donut
+      if (m.sectors&&m.sectors.length) {
+        const indexPct = q ? q.pct : 0;
+        renderSectorDonut(m.sectors, indexPct);
+      }
+      // Gainers + losers → contributors (combine, sort by abs pct)
+      const allStocks = [...(m.gainers||[]), ...(m.losers||[])];
+      contribStocks  = allStocks.sort((a,b)=>a.pct-b.pct); // losers first
+      contribSectors = (m.sectors||[]).map(s=>({symbol:s.sector,sector:s.sector,pct:s.pct}));
+      renderContrib();
+    }
+
+    // Currencies — ticker only
+    const comms=data.commodities||{};
+    ['usdpkr','eurpkr'].forEach(key=>{
+      const d=comms[key];
+      if (d&&!d.error) tickerState[key]={close:d.close,change:d.change,pct:d.pct};
+    });
+
+    // Re-fetch intraday so the 1D chart grows with new ticks
+    if (currentTF==='1D') {
+      try {
+        const r=await fetch(`${API}/intraday`);
+        if (r.ok) { historyIntraday=await r.json(); applyTF('1D'); }
+      } catch(e) {}
+    }
+
+    buildTicker();
+    setStatus('ok',`Refreshed at ${nowT()} · Next refresh in 5 min`);
+
+  } catch(e) {
+    setStatus('err',`Cannot reach server (${e.message}) — is server.py running?`);
+  }
+}
+
+// ── News ───────────────────────────────────────────────────────
+async function loadNews() {
+  try {
+    const r = await fetch(`${API}/news`);
+    const d = await r.json();
+    const track = document.getElementById('newsTrack');
+    const items = (d.news && d.news.length) ? d.news : ['No news available'];
+    // Duplicate for seamless scroll loop
+    track.innerHTML = [...items, ...items]
+      .map(h => `<div class="news-item">${h.replace(/</g,'&lt;')}</div>`)
+      .join('');
+  } catch(e) { /* silent fail — news is cosmetic */ }
+}
+
+// ── Init ───────────────────────────────────────────────────────
+async function init() {
+  buildTicker();
+  await Promise.all([loadHistory(),loadIntraday()]);
+  if (historyIntraday.length) applyTF('1D');
+  else if (historyFull.length) applyTF('3M');
+  if (historyFull.length) {
+    const todayLabel=new Date().toLocaleDateString('en-PK',{timeZone:'Asia/Karachi',day:'2-digit',month:'short'});
+    historyFull.push({date:todayLabel+' ●',price:null});
+  }
+  await Promise.all([loadAll(), loadNews()]);
+  setInterval(loadAll, 5*60*1000);
+  setInterval(loadNews, 30*60*1000);
+}
+
+init();
+</script>
+</body>
+</html>
