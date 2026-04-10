@@ -53,6 +53,7 @@
   .hdr-right { display:flex; align-items:center; gap:22px; }
   .live-badge { display:flex; align-items:center; gap:7px; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.1em; color:var(--text); }
   .dot { width:7px; height:7px; border-radius:50%; background:var(--text); box-shadow:0 0 6px rgba(245,240,235,0.6); animation:pulse 1.8s infinite; }
+  .dot.closed { background:#666; box-shadow:none; animation:none; }
   @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.8)} }
   #clock { font-family:'IBM Plex Mono',monospace; font-size:13px; letter-spacing:.07em; }
 
@@ -308,6 +309,129 @@
     .donut-wrap { width: 180px; height: 180px; }
     #sectorDonut { width: 180px !important; height: 180px !important; }
   }
+
+  /* ════════════════════════════════════════════════════
+     TV / LARGE SCREEN  — 1280px and above
+     Bigger fonts, more spacing, higher contrast for
+     viewing from a distance on a TV browser.
+     ════════════════════════════════════════════════════ */
+  @media (min-width: 1280px) {
+
+    /* Header — taller, bigger text */
+    header { padding: 20px 48px; }
+    .logo  { width: 52px; height: 52px; font-size: 26px; }
+    .brand-text h1 { font-size: 22px; }
+    .brand-text p  { font-size: 12px; }
+    #clock { font-size: 16px; }
+    .live-badge { font-size: 13px; }
+    .dot { width: 9px; height: 9px; }
+    .dot.closed { background: #666; box-shadow: none; animation: none; }
+    #liveLabel { font-size: 13px; }
+
+    /* Status bar */
+    .statusbar { padding: 8px 48px; font-size: 13px; }
+    .sdot { width: 8px; height: 8px; }
+
+    /* Ticker tape — bigger */
+    .ticker-wrap { height: 40px; }
+    .ti { font-size: 14px; padding: 0 32px; }
+
+    /* Main wrap — more breathing room */
+    .wrap { margin: 28px 40px; }
+
+    /* Cards — larger padding */
+    .card { padding: 32px 36px; border-radius: 8px; }
+    .clabel { font-size: 11px; letter-spacing: .2em; }
+
+    /* KSE hero — huge index value */
+    .kse-val { font-size: 88px; }
+    .kse-stats { gap: 16px; }
+    .sbox { padding: 16px 20px; border-radius: 6px; }
+    .sbox .sl { font-size: 10px; }
+    .sbox .sv { font-size: 20px; }
+
+    /* Badge & pct */
+    .badge { padding: 5px 14px; font-size: 15px; border-radius: 4px; }
+    .pct   { font-size: 15px; }
+
+    /* Chart — taller */
+    .chart-box  { height: 280px; }
+    #kseChart   { height: 280px !important; }
+    .chart-footer { font-size: 11px; padding-top: 14px; margin-top: 14px; }
+    .ohlc-item .ov { font-size: 16px; }
+    #cfUpdated { font-size: 11px; }
+
+    /* Analysis row — more gap */
+    .analysis-row { gap: 16px; }
+
+    /* Donut — bigger */
+    .donut-layout { gap: 32px; }
+    .donut-wrap   { width: 320px; height: 320px; }
+    #sectorDonut  { width: 320px !important; height: 320px !important; }
+    .donut-centre { width: 120px; }
+    .donut-centre .dc-idx { font-size: 13px; }
+    .donut-centre .dc-val { font-size: 20px; }
+    .sector-legend { gap: 10px; }
+    .sl-row { gap: 10px; }
+    .sl-name  { font-size: 12px; }
+    .sl-pct   { font-size: 12px; width: 52px; }
+    .sl-swatch { width: 12px; height: 12px; }
+    .sl-bar-wrap { width: 80px; height: 4px; }
+    .sl-bar      { height: 4px; }
+
+    /* Contributors chart — taller */
+    .contrib-chart-box { height: 300px; }
+    #contribChart      { height: 300px !important; }
+    .contrib-header { margin-bottom: 14px; }
+    .ctab { padding: 5px 14px; font-size: 12px; border-radius: 4px; }
+
+    /* Footer */
+    footer { font-size: 12px; padding: 16px; }
+
+    /* News bar — bigger */
+    .news-bar   { height: 44px; }
+    body        { padding-bottom: 48px; }
+    .news-label { font-size: 12px; padding: 0 18px; }
+    .news-item  { font-size: 14px; padding: 0 60px; }
+
+    /* Higher contrast for distance viewing */
+    .muted   { color: #C0A8A8 !important; }
+    :root {
+      --label: #9A6878;
+      --muted: #C0A8A8;
+    }
+  }
+
+  /* 4K TVs — even more scale */
+  @media (min-width: 2560px) {
+    .kse-val { font-size: 120px; }
+    header { padding: 28px 72px; }
+    .logo  { width: 64px; height: 64px; font-size: 32px; }
+    .brand-text h1 { font-size: 28px; }
+    .brand-text p  { font-size: 14px; }
+    #clock { font-size: 20px; }
+    .live-badge { font-size: 15px; }
+    .statusbar { padding: 10px 72px; font-size: 15px; }
+    .ti { font-size: 17px; padding: 0 40px; }
+    .ticker-wrap { height: 48px; }
+    .wrap { margin: 36px 60px; }
+    .card { padding: 40px 48px; }
+    .sbox .sv { font-size: 26px; }
+    .sbox .sl { font-size: 12px; }
+    .badge { font-size: 18px; padding: 6px 18px; }
+    .pct   { font-size: 18px; }
+    .chart-box  { height: 360px; }
+    #kseChart   { height: 360px !important; }
+    .donut-wrap   { width: 400px; height: 400px; }
+    #sectorDonut  { width: 400px !important; height: 400px !important; }
+    .contrib-chart-box { height: 380px; }
+    #contribChart      { height: 380px !important; }
+    .news-bar   { height: 52px; }
+    body        { padding-bottom: 56px; }
+    .news-label { font-size: 14px; padding: 0 24px; }
+    .news-item  { font-size: 16px; padding: 0 72px; }
+    footer { font-size: 14px; padding: 20px; }
+  }
 </style>
 </head>
 <body>
@@ -321,7 +445,7 @@
     </div>
   </div>
   <div class="hdr-right">
-    <div class="live-badge"><div class="dot"></div>LIVE DATA</div>
+    <div class="live-badge"><div class="dot" id="liveDot"></div><span id="liveLabel">LIVE DATA</span></div>
     <div id="clock">--:--:--</div>
   </div>
 </header>
@@ -357,16 +481,7 @@
 
   <!-- PRICE HISTORY CHART -->
   <div class="card c-green">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <div class="clabel" style="margin-bottom:0;flex:1">KSE-100 · Price History</div>
-      <div class="tf-row">
-        <button class="tf-btn active" onclick="switchTF(this,'1D')">1D</button>
-        <button class="tf-btn" onclick="switchTF(this,'1W')">1W</button>
-        <button class="tf-btn" onclick="switchTF(this,'1M')">1M</button>
-        <button class="tf-btn" onclick="switchTF(this,'3M')">3M</button>
-        <button class="tf-btn" onclick="switchTF(this,'ALL')">ALL</button>
-      </div>
-    </div>
+    <div class="clabel">KSE-100 · Intraday Price</div>
     <div class="chart-box"><canvas id="kseChart"></canvas></div>
     <div class="chart-footer">
       <div class="ohlc">
@@ -467,7 +582,7 @@ setInterval(tick, 1000); tick();
 
 // ── KSE Price Chart ────────────────────────────────────────────
 const chartLabels = [], chartData = [];
-let liveIndex = -1, historyFull = [], historyIntraday = [], currentTF = '1D';
+let liveIndex = -1, historyIntraday = [];
 
 const kseChart = new Chart(document.getElementById('kseChart').getContext('2d'), {
   type:'line',
@@ -508,24 +623,6 @@ function setChartSeries(labels, data) {
   chartLabels.length=0; chartData.length=0;
   labels.forEach(l=>chartLabels.push(l)); data.forEach(d=>chartData.push(d));
   kseChart.update('none');
-}
-
-function switchTF(btn, tf) {
-  document.querySelectorAll('.tf-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active'); currentTF=tf; applyTF(tf);
-}
-
-function applyTF(tf) {
-  if (tf==='1D' && historyIntraday.length>0) {
-    const labels = historyIntraday.map(r=>new Date(r[0]*1000).toLocaleTimeString('en-PK',{timeZone:'Asia/Karachi',hour:'2-digit',minute:'2-digit'}));
-    const data   = historyIntraday.map(r=>r[1]);
-    liveIndex=data.length-1; setChartSeries(labels,data); return;
-  }
-  const slices={'1D':1,'1W':5,'1M':22,'3M':66,'ALL':9999};
-  const days=slices[tf]||66;
-  const slice=historyFull.length>days ? historyFull.slice(-days):historyFull;
-  liveIndex=slice.length-1;
-  setChartSeries(slice.map(r=>r.date), slice.map(r=>r.price));
 }
 
 // ── Sector Donut ───────────────────────────────────────────────
@@ -706,20 +803,47 @@ function setStatus(state,msg) {
   document.getElementById('stext').textContent=msg;
 }
 
-// ── History loaders ────────────────────────────────────────────
-async function loadHistory() {
-  try { const r=await fetch(`${API}/history`); if(!r.ok) throw new Error(); historyFull=await r.json(); }
-  catch(e) { historyFull=[]; }
-}
+// ── Intraday loader ────────────────────────────────────────────
 async function loadIntraday() {
   try { const r=await fetch(`${API}/intraday`); if(!r.ok) throw new Error(); historyIntraday=await r.json(); }
   catch(e) { historyIntraday=[]; }
+}
+
+// ── Market status (live dot / label) ──────────────────────────
+let marketIsOpen = true;
+
+function updateMarketStatus(ms) {
+  const dot   = document.getElementById('liveDot');
+  const label = document.getElementById('liveLabel');
+  if (!ms || ms.is_trading) {
+    marketIsOpen = true;
+    dot.className = 'dot';
+    label.textContent = 'LIVE DATA';
+  } else {
+    marketIsOpen = false;
+    dot.className = 'dot closed';
+    const stateLabels = {
+      'closed': 'MARKET CLOSED',
+      'pre-open': 'PRE-OPEN',
+      'after-hours': 'AFTER HOURS',
+    };
+    label.textContent = stateLabels[ms.state] || 'MARKET CLOSED';
+  }
 }
 
 // ── Main fetch ─────────────────────────────────────────────────
 async function loadAll() {
   setStatus('loading','Fetching latest data…');
   try {
+    // Fetch market status first
+    let ms = null;
+    try {
+      const msr = await fetch(`${API}/market-status`);
+      if (msr.ok) ms = await msr.json();
+    } catch(e) { /* ignore — status bar still works */ }
+
+    updateMarketStatus(ms);
+
     const res=await fetch(`${API}/all`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data=await res.json();
@@ -727,23 +851,36 @@ async function loadAll() {
     // KSE-100 quote
     const q=data.quote;
     if (q&&!q.error) {
-      const k={close:q.price,open:q.open,high:q.high,low:q.low,prev_close:q.prev_close||q.open};
-      applyCard({valId:'kseVal',badgeId:'kseBadge',pctId:'ksePct',tsId:'kseTs',errId:'kseErr'},k);
-      document.getElementById('kseOpen').textContent=fmt(k.open);
-      document.getElementById('ksePrev').textContent=fmt(k.prev_close);
-      document.getElementById('kseHigh').textContent=fmt(k.high);
-      document.getElementById('kseLow').textContent=fmt(k.low);
-      document.getElementById('cfOpen').textContent=fmt(k.open);
-      document.getElementById('cfHigh').textContent=fmt(k.high);
-      document.getElementById('cfLow').textContent=fmt(k.low);
-      document.getElementById('cfUpdated').textContent='LAST UPDATED: '+nowT();
+      if (q.is_trading === false) {
+        // Market is closed — show the note instead of price card error
+        const kseVal = document.getElementById('kseVal');
+        kseVal.textContent = '———';
+        kseVal.classList.remove('loading');
+        document.getElementById('kseBadge').textContent = ms ? ms.session : '';
+        document.getElementById('kseBadge').className = 'badge neu';
+        document.getElementById('ksePct').textContent = '';
+        document.getElementById('kseTs').textContent = `PST ${ms?.pk_time || ''} · ${ms?.next_event || ''}`;
+        document.getElementById('kseOpen').textContent = '—';
+        document.getElementById('ksePrev').textContent = '—';
+        document.getElementById('kseHigh').textContent = '—';
+        document.getElementById('kseLow').textContent  = '—';
+      } else {
+        const k={close:q.price,open:q.open,high:q.high,low:q.low,prev_close:q.prev_close||q.open};
+        applyCard({valId:'kseVal',badgeId:'kseBadge',pctId:'ksePct',tsId:'kseTs',errId:'kseErr'},k);
+        document.getElementById('kseOpen').textContent=fmt(k.open);
+        document.getElementById('ksePrev').textContent=fmt(k.prev_close);
+        document.getElementById('kseHigh').textContent=fmt(k.high);
+        document.getElementById('kseLow').textContent=fmt(k.low);
+        document.getElementById('cfOpen').textContent=fmt(k.open);
+        document.getElementById('cfHigh').textContent=fmt(k.high);
+        document.getElementById('cfLow').textContent=fmt(k.low);
+        document.getElementById('cfUpdated').textContent='LAST UPDATED: '+nowT();
 
-      if (currentTF==='1D'&&historyIntraday.length>0) {
-        historyIntraday[historyIntraday.length-1][1]=k.close; applyTF('1D');
-      } else if (liveIndex>=0&&liveIndex<chartData.length) {
-        chartData[liveIndex]=k.close; kseChart.update('none');
+        if (liveIndex>=0&&liveIndex<chartData.length) {
+          chartData[liveIndex]=k.close; kseChart.update('none');
+        }
+        tickerState.kse100={close:k.close,change:q.change,pct:q.pct};
       }
-      tickerState.kse100={close:k.close,change:q.change,pct:q.pct};
     } else { showErr('kseErr','kseVal',q?.error||'No KSE-100 data'); }
 
     // Market data → sector donut + contributors
@@ -768,16 +905,11 @@ async function loadAll() {
       if (d&&!d.error) tickerState[key]={close:d.close,change:d.change,pct:d.pct};
     });
 
-    // Re-fetch intraday so the 1D chart grows with new ticks
-    if (currentTF==='1D') {
-      try {
-        const r=await fetch(`${API}/intraday`);
-        if (r.ok) { historyIntraday=await r.json(); applyTF('1D'); }
-      } catch(e) {}
-    }
-
     buildTicker();
-    setStatus('ok',`Refreshed at ${nowT()} · Next refresh in 5 min`);
+    const statusMsg = ms
+      ? `${ms.session} · ${ms.next_event} · Refreshed ${nowT()}`
+      : `Refreshed at ${nowT()} · Next refresh in 5 min`;
+    setStatus('ok', statusMsg);
 
   } catch(e) {
     setStatus('err',`Cannot reach server (${e.message}) — is server.py running?`);
@@ -801,12 +933,16 @@ async function loadNews() {
 // ── Init ───────────────────────────────────────────────────────
 async function init() {
   buildTicker();
-  await Promise.all([loadHistory(),loadIntraday()]);
-  if (historyIntraday.length) applyTF('1D');
-  else if (historyFull.length) applyTF('3M');
-  if (historyFull.length) {
-    const todayLabel=new Date().toLocaleDateString('en-PK',{timeZone:'Asia/Karachi',day:'2-digit',month:'short'});
-    historyFull.push({date:todayLabel+' ●',price:null});
+  // Load market status immediately
+  try {
+    const msr = await fetch(`${API}/market-status`);
+    if (msr.ok) updateMarketStatus(await msr.json());
+  } catch(e) {}
+  await loadIntraday();
+  if (historyIntraday.length) {
+    const labels = historyIntraday.map(r=>new Date(r[0]*1000).toLocaleTimeString('en-PK',{timeZone:'Asia/Karachi',hour:'2-digit',minute:'2-digit'}));
+    const data   = historyIntraday.map(r=>r[1]);
+    liveIndex=data.length-1; setChartSeries(labels,data);
   }
   await Promise.all([loadAll(), loadNews()]);
   setInterval(loadAll, 5*60*1000);
